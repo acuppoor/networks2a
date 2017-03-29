@@ -18,17 +18,18 @@ public class Client {
             System.out.println("The following error has occurred: \n" + e.getStackTrace());
             portNumber = "6789"; // default portnumber in case of any error
         }
-
-        Socket socket = null;
-        try{
-            socket = new Socket("localhost", Integer.parseInt(portNumber)); // creates a socket with the given port number
-        } catch (Exception e){
-            e.printStackTrace();
-            System.exit(11); // random exit code, no special reason for the exit code 11
-        }
+        
         System.out.println("----- Chat Start -----");
 
         while (!sentence.equalsIgnoreCase("exit")) {
+            Socket socket = null;
+            try{
+                socket = new Socket("localhost", Integer.parseInt(portNumber)); // creates a socket with the given port number
+            } catch (Exception e){
+                e.printStackTrace();
+                System.exit(11); // random exit code, no special reason for the exit code 11
+            }
+
             DataOutputStream toServer = null;
             try{
                 toServer= new DataOutputStream(socket.getOutputStream()); // to send messages to server
@@ -44,7 +45,7 @@ public class Client {
             }
             System.out.print("Me: ");
             sentence = scanner.nextLine(); // read the message typed in by the user
-            
+
             try {
                 toServer.writeBytes(sentence + '\n'); // write the message to the server
             } catch (Exception e){
@@ -55,15 +56,14 @@ public class Client {
             } catch (Exception e){
                 System.out.println("Error from server: \n" + e.getStackTrace());
             }
-        }
 
-        try {
-            socket.close();
-        } catch (Exception e){
-            System.out.println("Error in closing socket: " + e.getStackTrace());
+            try {
+                socket.close();
+            } catch (Exception e){
+                System.out.println("Error in closing socket: " + e.getStackTrace());
+            }
         }
-
-        System.out.println("----- Chat Start -----");
+        System.out.println("----- Chat End -----");
     }
 
     private static boolean isDigit(String s){
