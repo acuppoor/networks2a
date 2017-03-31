@@ -1,39 +1,67 @@
+package main;
+
+import overriden.ServerSocketM;
+import threads.*;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Scanner;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 
 public class Server {
-    
-    static int portNo = 1234; //For testing purposes
-    static ServerSocket serverSock;
-    static Socket clientSock;
-    static DataInputStream input;
-    static PrintStream output;
-    
+
     public static void main(String[] args) throws IOException{ //Exceptions thrown for method
-        //Get how many people in chat
-        Scanner s = new Scanner(System.in);
-        System.out.print("How many people are joining the chat? ");
-        int people = Integer.parseInt(s.next());
-        
-        //Creates a server socket which listens for connections from clients.
-        serverSock = new ServerSocket(portNo); //DOES THIS HAVE TO BE THE SAME PORT NO AS THE CLIENTS?
-        
-        //Server waits for connection request from a client
-        //Accepts the connection from the client
-        //Assigns a unique port to the client
-        clientSock = serverSock.accept(); 
-        
-        //Gets input from client to send through server.
-        input = new DataInputStream(clientSock.getInputStream());
-        
-        //Sends output to a client
-        output = new PrintStream(clientSock.getOutputStream());
-    }  
-    
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("How many people will chat?");
+        int numberOfPeople = 2;
+
+        try{
+            numberOfPeople = scanner.nextInt();
+        } catch (Exception e){
+            numberOfPeople = 2;
+            System.out.println("Number of people is assumed to be 2, error with the number of people entered:" + e.getStackTrace());
+        }
+
+        ServerSocketM[] serverSockets = new ServerSocketM[numberOfPeople];
+        String[] portNumbers = new String[numberOfPeople];
+        Socket[] sockets = new Socket[numberOfPeople];
+
+        System.out.println("Enter the " + numberOfPeople + " port numbers (separated by space):" );
+
+        for (int i = 0; i < numberOfPeople; i++){
+            portNumbers[i] = scanner.next();
+            serverSockets[i] = new ServerSocketM(Integer.parseInt(portNumbers[i]));
+        }
+
+        System.out.println("----- Server Started -----");
+        MessageReaderForServer[] m = new MessageReaderForServer[numberOfPeople];
+        for (int i = 0; i < numberOfPeople; i++) {
+            m[i] = new MessageReaderForServer(serverSockets, i, sockets);
+            m[i].start();
+        }
+
+        for (int i = 0; i < numberOfPeople; i++) {
+            try {
+                m[i].join();
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+
+        /*
+        sockets[0] = serverSockets[0].accept();
+        while(true){
+                try {
+                    System.out.println(new DataInputStream(sockets[0].getInputStream()).readLine());
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
+
+        }
+        */
+
+        //System.out.println("----- Server Ended -----");
+
+    }
+
 }

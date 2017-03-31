@@ -1,6 +1,15 @@
+/**
+ * Created by Arjun on 3/30/2017.
+ */
+package main;
+
+import threads.MessageReaderAndSenderForClient;
+import threads.MessageReaderFromServerForClient;
+
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
+
 public class Client {
     private static String portNumber = "abcd";
 
@@ -18,52 +27,40 @@ public class Client {
             System.out.println("The following error has occurred: \n" + e.getStackTrace());
             portNumber = "6789"; // default portnumber in case of any error
         }
-        
+
         System.out.println("----- Chat Start -----");
 
+        /*
         while (!sentence.equalsIgnoreCase("exit")) {
             Socket socket = null;
-            try{
-                socket = new Socket("localhost", Integer.parseInt(portNumber)); // creates a socket with the given port number
-            } catch (Exception e){
-                e.printStackTrace();
-                System.exit(11); // random exit code, no special reason for the exit code 11
-            }
-
-            DataOutputStream toServer = null;
-            try{
-                toServer= new DataOutputStream(socket.getOutputStream()); // to send messages to server
-            } catch (Exception e){
-
-            }
-
-            DataInputStream fromServer = null;
             try {
+                socket = new Socket("127.0.0.1", Integer.parseInt(portNumber)); // creates a socket with the given port number
+
+                DataOutputStream toServer = null;
+                toServer = new DataOutputStream(socket.getOutputStream()); // to send messages to server
+                new MessageReaderAndSenderForClient(toServer, scanner).start();
+
+                DataInputStream fromServer = null;
                 fromServer = new DataInputStream(socket.getInputStream()); // to get messages from server
-            } catch (Exception e){
+                new MessageReaderFromServerForClient(fromServer).start();
 
-            }
-            System.out.print("Me: ");
-            sentence = scanner.nextLine(); // read the message typed in by the user
-
-            try {
-                toServer.writeBytes(sentence + '\n'); // write the message to the server
             } catch (Exception e){
-                System.out.println("Message not sent, error: \n" + e.getStackTrace());
-            }
-            try {
-                System.out.println("From server: " + fromServer.readLine()); // read reply from server
-            } catch (Exception e){
-                System.out.println("Error from server: \n" + e.getStackTrace());
+                //e.printStackTrace();
             }
 
-            try {
-                socket.close();
-            } catch (Exception e){
-                System.out.println("Error in closing socket: " + e.getStackTrace());
-            }
+        }*/
+        try {
+            Socket socket = new Socket("localhost", Integer.parseInt(portNumber));
+            MessageReaderFromServerForClient r = new MessageReaderFromServerForClient(socket);
+            MessageReaderAndSenderForClient s = new MessageReaderAndSenderForClient(socket);
+            r.start();
+            s.start();
+            r.join();
+            s.join();
+            System.out.println("----- Chat End -----");
+        } catch (Exception e){
+            e.printStackTrace();
         }
-        System.out.println("----- Chat End -----");
     }
 
     private static boolean isDigit(String s){
